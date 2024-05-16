@@ -1,0 +1,61 @@
+/* This is a code written for a "Useless Machine." This code requries a SINGLE POLE DOUBLE THROW switch to be used, TWO 10K RESISTORS going from GROUND to ON pin and OFF pin and a MicroServo that is only capable of +- 180 degrees
+This code is designed to randomly move the arm on the "Useless Machine." It will sometimes center the switch, sometimes move the switch all the Off Position. Sometimes it just might move around randomly. Who knows?
+This code requires the Servo libary. Can be found at https://github.com/arduino-libraries/Servo
+
+Created on May 16 2024
+By Kadin Canavan
+*/
+// Must include the libary Servo.h
+#include <Servo.h>
+// Servo (name of servo(in this case I named it arm))
+Servo arm;
+
+// pin that the Signal wire for the Servo is attached to
+byte servo = 9;
+// pin when switch is in the "On" position (towards opening). REMEMBER FLOATING PIN
+byte onPin = 8;
+// pin when switch is in the "Off" position (away from opening). REMEMBER FLOATING PIN
+byte offPin = 7;
+// variable for random number generator
+byte randNumber;
+// Use an Array with random degrees that can be chosen from.
+// If changing the number of variabes in the Array BE SURE to CHANGE the max in if(onRead == 1) in the LOOP. 
+// MUST keep 180 degrees in Array in order to allow for the switch to be brought to the Off Position. 
+int Arm[] = { 150, 180, 110, 120, 105, 80, 70, 40, 50, 90, 175, 4, 3, 67, 43, 69 };
+
+void setup() {
+  // servoName.attach(pin servo is connected to)
+  arm.attach(servo);
+  // define the pins for On and Off as Inputs
+  pinMode(offPin, INPUT);
+  pinMode(onPin, INPUT);
+  // Serial.begin(9600 buad rate) for debugging purposes
+  Serial.begin(9600);
+  // use randomSeed(analog pin with nothing connected to it) for randomizing
+  randomSeed(analogRead(A3));
+}
+
+void loop() {
+  // declare a variable for reading the On and Off pin. Byte works because the vaules are less than 500.
+  byte onRead = digitalRead(onPin);
+  byte offRead = digitalRead(offPin);
+  // for when the switch is centered
+  if (offRead == 0 && onRead == 0) {
+    // when the switch is centered it is at 100 degrees (Poking up AKA watching you)
+    arm.write(100);
+  }
+  // when the swtich is in the On position
+  if (onRead == 1) {
+    delay(250);
+    // pick a random number from 0 to 15(Array's use Indexing so the first number in an Array is defined as number 0. Arduino's random number generator will pick from 0 to one below the max, in this case the max number we need is 15 so we set it to 16)
+    // variable = random(0, number of variables in Array)
+    randNumber = random(0, 16);
+    // servoName.write(Array Name [What number variable from the Array])
+    arm.write(Arm[randNumber]);
+  }
+  // for when the switch is in the Off position
+  if (offRead == 1) {
+    // tells it to go backwards 180 degrees (or until its fully retracted)
+    arm.write(-180);
+  }
+}
